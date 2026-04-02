@@ -1,0 +1,145 @@
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  background: rgba(45, 36, 46, 0.95);
+  backdrop-filter: blur(10px);
+  color: var(--text-main);
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  transition: var(--transition);
+  position: relative;
+  overflow-y: auto;
+  box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+}
+
+.logoContainer {
+  margin-bottom: 60px;
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.eduBox {
+  background: #4A2B3D;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: #fff;
+  font-size: 1.5rem;
+}
+
+.weaverBox {
+  font-weight: 700;
+  color: var(--accent-orange);
+  font-size: 1.5rem;
+  margin-left: 5px;
+  background: #4A2B3D;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.toggleArrow {
+  position: absolute;
+  right: -32px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--bg-sidebar);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.nav {
+  flex-grow: 1;
+}
+
+.navList {
+  list-style: none;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: var(--transition);
+  margin-bottom: 8px;
+}
+
+.navItem:hover {
+  color: var(--text-main);
+}
+
+.icon {
+  width: 24px;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.logoutBtn {
+    display: flex;
+    align-items: center;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-bottom: 24px;
+    padding: 12px 0;
+    transition: var(--transition);
+}
+
+.logoutBtn:hover {
+    color: #FF5E5E;
+}
+
+.darkModeToggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.switch {
+  width: 44px;
+  height: 22px;
+  background: #3D313E;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.switch.active {
+  background: #4CAF50;
+}
+
+.handle {
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: var(--transition);
+}
+
+.switch.active .handle {
+  transform: translateX(22px);
+}
