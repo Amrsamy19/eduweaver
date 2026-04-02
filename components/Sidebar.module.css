@@ -1,7 +1,7 @@
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
-  background: rgba(45, 36, 46, 0.95);
+  background: var(--bg-sidebar);
   backdrop-filter: blur(10px);
   color: var(--text-main);
   padding: 40px 24px;
@@ -10,8 +10,14 @@
   border-right: 1px solid rgba(255, 255, 255, 0.05);
   transition: var(--transition);
   position: relative;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+  flex-shrink: 0;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+  padding: 40px 16px;
 }
 
 .logoContainer {
@@ -42,11 +48,10 @@
 
 .toggleArrow {
   position: absolute;
-  right: -32px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: var(--bg-sidebar);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  right: -12px;
+  top: 40px;
+  background: var(--accent-orange);
+  border: none;
   width: 24px;
   height: 24px;
   border-radius: 50%;
@@ -54,7 +59,15 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--text-muted);
+  color: white;
+  z-index: 10;
+  transition: var(--transition);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.collapsed .toggleArrow {
+  transform: rotate(180deg);
+  right: -12px;
 }
 
 .nav {
@@ -68,15 +81,54 @@
 .navItem {
   display: flex;
   align-items: center;
-  padding: 12px 0;
+  justify-content: flex-start; /* Left-aligned when expanded */
+  padding: 12px 16px;
   color: var(--text-muted);
   cursor: pointer;
   transition: var(--transition);
   margin-bottom: 8px;
+  border-radius: 12px;
+}
+
+.collapsed .navItem {
+  justify-content: center; /* Perfectly centered when collapsed */
+  padding: 12px 0;
 }
 
 .navItem:hover {
   color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navItem span,
+.logoutBtn span,
+.darkModeToggle span,
+.weaverBox {
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+}
+
+.collapsed .navItem span,
+.collapsed .logoutBtn span,
+.collapsed .darkModeToggle span,
+.collapsed .weaverBox {
+  opacity: 0;
+  pointer-events: none;
+  width: 0;
+  margin: 0;
+}
+
+.collapsed .icon {
+  margin-right: 0;
 }
 
 .icon {
@@ -96,11 +148,17 @@
 .logoutBtn {
     display: flex;
     align-items: center;
+    justify-content: flex-start; /* Left-aligned when expanded */
     color: var(--text-muted);
     cursor: pointer;
     margin-bottom: 24px;
-    padding: 12px 0;
+    padding: 12px 16px;
     transition: var(--transition);
+}
+
+.collapsed .logoutBtn {
+    justify-content: center; /* Centered when collapsed */
+    padding: 12px 0;
 }
 
 .logoutBtn:hover {
@@ -110,9 +168,16 @@
 .darkModeToggle {
   display: flex;
   align-items: center;
+  justify-content: flex-start; /* Left-aligned when expanded */
   gap: 12px;
   color: var(--text-main);
   font-weight: 600;
+  padding: 0 16px;
+}
+
+.collapsed .darkModeToggle {
+  justify-content: center; /* Centered when collapsed */
+  padding: 0;
 }
 
 .switch {
@@ -138,8 +203,23 @@
   top: 2px;
   left: 2px;
   transition: var(--transition);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 2;
 }
 
+.switchIcon {
+  width: 11px;
+  height: 11px;
+  display: block;
+}
+
+/* Perfect containment for the active state */
 .switch.active .handle {
-  transform: translateX(22px);
+  left: calc(100% - 20px);
+}
+
+.switch.active .switchIcon {
+    transform: translate(-0.5px, 0.5px);
 }
