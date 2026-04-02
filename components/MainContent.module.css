@@ -21,11 +21,6 @@
   z-index: 2;
 }
 
-.textBlock {
-  flex: 1;
-  max-width: 500px;
-}
-
 .subTitle {
   font-size: 1.25rem;
   font-weight: 600;
@@ -61,12 +56,12 @@
   padding: 16px 64px;
   border-radius: 50px;
   transition: var(--transition);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .exploreBtn:hover {
   transform: translateY(-4px);
-  box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
 }
 
 .illustrationWrapper {
@@ -81,6 +76,10 @@
   max-width: 700px;
   position: relative;
   z-index: 3;
+}
+
+.imageContainer > img {
+  border-radius: 80px 20px;
 }
 
 .wavesContainer {
@@ -104,7 +103,7 @@
 }
 
 .innerCircle {
-  fill: #F7941D;
+  fill: #f7941d;
   opacity: 0.1;
 }
 
@@ -121,7 +120,7 @@
   z-index: -1;
   opacity: 0.8;
   border-radius: 50%;
-  box-shadow: inset 0 0 100px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.5);
 }
 
 .illustrationWrapper::after {
@@ -131,9 +130,17 @@
   right: -200px;
   width: 800px;
   height: 800px;
-  background-image: 
-    radial-gradient(circle at 10px 10px, var(--accent-orange) 50%, transparent 0%),
-    radial-gradient(circle at 30px 30px, var(--accent-orange) 40%, transparent 0%);
+  background-image:
+    radial-gradient(
+      circle at 10px 10px,
+      var(--accent-orange) 50%,
+      transparent 0%
+    ),
+    radial-gradient(
+      circle at 30px 30px,
+      var(--accent-orange) 40%,
+      transparent 0%
+    );
   background-size: 60px 60px;
   z-index: -2;
   opacity: 0.15;

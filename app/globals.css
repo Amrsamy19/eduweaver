@@ -1,28 +1,37 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
 :root {
-  --bg-main: #1C171F;
-  --bg-sidebar: #2D242E;
-  --bg-sidebar-hover: #3D313E;
-  --text-main: #FFFFFF;
-  --text-muted: #A9A9A9;
-  --accent-orange: #F7941D;
-  --accent-purple: #703D57;
-  --gradient-btn: linear-gradient(90deg, #703D57 0%, #4A2B3D 100%);
+  /* Brand Palette - User Requested */
+  --dark-bg: #130912;
+  --light-bg: #FFFFFF;
+  --dark-sidebar: #272026;
+  --light-sidebar: #FCF6FC;
+  --main-btn-color: #602749;
+  --headline-text: #F6921D;
+  --main-dark-text: #3E1E31;
+  --main-light-text: #FCF6FC;
+
+  /* Functional Variables (Mapped to Palette) */
+  --bg-main: var(--dark-bg);
+  --bg-sidebar: var(--dark-sidebar);
+  --text-main: var(--main-light-text);
+  --text-muted: rgba(252, 246, 252, 0.6);
+  --accent-orange: var(--headline-text);
+  --accent-purple: var(--main-btn-color);
+  --gradient-btn: linear-gradient(135deg, var(--main-btn-color) 0%, #4A2B3D 100%);
+  
+  /* Layout Constants */
   --sidebar-width: 260px;
   --font-outfit: 'Outfit', sans-serif;
-  --transition: all 0.3s ease;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 [data-theme='light'] {
-  --bg-main: #F4F4F9;
-  --bg-sidebar: #FFFFFF;
-  --bg-sidebar-hover: #ECECF3;
-  --text-main: #2D242E;
-  --text-muted: #5D5A6D;
-  --accent-orange: #E67E22;
-  --accent-purple: #9B59B6;
-  --gradient-btn: linear-gradient(90deg, #9B59B6 0%, #8E44AD 100%);
+  --bg-main: var(--light-bg);
+  --bg-sidebar: var(--light-sidebar);
+  --text-main: var(--main-dark-text);
+  --text-muted: rgba(62, 30, 49, 0.6);
+  --gradient-btn: linear-gradient(135deg, var(--main-btn-color) 0%, #703D57 100%);
 }
 
 * {
@@ -38,6 +47,7 @@ body {
   font-family: var(--font-outfit);
   background: var(--bg-main);
   color: var(--text-main);
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
 a {
@@ -64,9 +74,9 @@ button {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3D313E;
+  background: var(--accent-purple);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #4A2B3D;
+  background: var(--accent-orange);
 }
