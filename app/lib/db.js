@@ -2,18 +2,39 @@ import { Pool, Client } from 'pg';
 
 const globalForPool = global;
 
-export const pool = globalForPool.pgPool || new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL && (process.env.DATABASE_URL.includes('sslmode=disable') || process.env.DATABASE_URL.includes('localhost') || process.env.DATABASE_URL.includes('127.0.0.1'))
-    ? false 
-    : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
-});
+// Invalidate cached pool if the connection string changed (e.g. .env hot-reload)
+const currentUrl = process.env.DATABASE_URL || '';
+if (globalForPool.pgPoolUrl && globalForPool.pgPoolUrl !== currentUrl) {
+  // Connection string changed — destroy old pool
+  if (globalForPool.pgPool) {
+    globalForPool.pgPool.end().catch(() => {});
+  }
+  globalForPool.pgPool = null;
+}
 
-if (process.env.NODE_ENV !== 'production') globalForPool.pgPool = pool;
+function createPool() {
+  const connStr = process.env.DATABASE_URL;
+  if (!connStr) {
+    console.warn('[DB] No DATABASE_URL set — database queries will fail.');
+    return new Pool(); // empty pool, will error on use
+  }
+  const isLocal = connStr.includes('localhost') || connStr.includes('127.0.0.1') || connStr.includes('sslmode=disable');
+  return new Pool({
+    connectionString: connStr,
+    ssl: isLocal ? false : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false),
+  });
+}
+
+export const pool = globalForPool.pgPool || createPool();
+
+if (process.env.NODE_ENV !== 'production') {
+  globalForPool.pgPool = pool;
+  globalForPool.pgPoolUrl = currentUrl;
+}
 
 export const query = (text, params) => pool.query(text, params);
 
-// Initialize database tables and check/create database if it doesn't exist
+// Initialize database and tables
 export async function initDb() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) return;
@@ -21,44 +42,40 @@ export async function initDb() {
   try {
     // 1. Parse connection string to get the database name
     const url = new URL(databaseUrl);
-    const dbName = url.pathname.slice(1).split('?')[0]; // strip query parameters if any
+    const dbName = url.pathname.slice(1).split('?')[0];
 
     if (dbName && dbName !== 'postgres' && dbName !== 'template1') {
-      // 2. Create connection string to default postgres database
+      // 2. Connect to the default "postgres" database to check/create target DB
       const defaultUrlObj = new URL(databaseUrl);
       defaultUrlObj.pathname = '/postgres';
       const defaultUrl = defaultUrlObj.toString();
+      const isLocal = defaultUrl.includes('localhost') || defaultUrl.includes('127.0.0.1') || defaultUrl.includes('sslmode=disable');
 
-      // 3. Connect to default postgres DB using a temporary client
       const client = new Client({
         connectionString: defaultUrl,
-        ssl: defaultUrl.includes('sslmode=disable') || defaultUrl.includes('localhost') || defaultUrl.includes('127.0.0.1')
-          ? false 
-          : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
+        ssl: isLocal ? false : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false),
       });
 
       await client.connect();
 
-      // 4. Check if the target database exists
       const dbCheckRes = await client.query(
         'SELECT 1 FROM pg_database WHERE datname = $1',
         [dbName]
       );
 
       if (dbCheckRes.rows.length === 0) {
-        console.log(`Database "${dbName}" does not exist. Creating it now...`);
-        // Note: CREATE DATABASE cannot run inside a transaction, and we must double-quote the identifier
+        console.log(`[DB] Database "${dbName}" does not exist. Creating it now...`);
         await client.query(`CREATE DATABASE "${dbName}"`);
-        console.log(`Database "${dbName}" created successfully!`);
+        console.log(`[DB] Database "${dbName}" created successfully!`);
       }
 
       await client.end();
     }
   } catch (error) {
-    console.error('Warning during check/creation of database:', error.message);
+    console.error('[DB] Warning during database check/creation:', error.message);
   }
 
-  // 5. Connect and initialize tables in the target database
+  // 3. Create tables in the target database
   try {
     await query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -79,13 +96,13 @@ export async function initDb() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('Database tables verified/created successfully.');
+    console.log('[DB] Tables verified/created successfully.');
   } catch (error) {
-    console.error('Database tables initialization warning:', error.message);
+    console.error('[DB] Table initialization error:', error.message);
   }
 }
 
-// Self-execute database initialization
+// Self-execute on module load
 if (process.env.DATABASE_URL) {
-  initDb().catch(err => console.error('Database self-init error:', err));
+  initDb().catch(err => console.error('[DB] Self-init error:', err.message));
 }
