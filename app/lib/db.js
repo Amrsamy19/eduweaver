@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, Client } from 'pg';
 
 const globalForPool = global;
 
@@ -13,8 +13,52 @@ if (process.env.NODE_ENV !== 'production') globalForPool.pgPool = pool;
 
 export const query = (text, params) => pool.query(text, params);
 
-// Initialize database tables
+// Initialize database tables and check/create database if it doesn't exist
 export async function initDb() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) return;
+
+  try {
+    // 1. Parse connection string to get the database name
+    const url = new URL(databaseUrl);
+    const dbName = url.pathname.slice(1).split('?')[0]; // strip query parameters if any
+
+    if (dbName && dbName !== 'postgres' && dbName !== 'template1') {
+      // 2. Create connection string to default postgres database
+      const defaultUrlObj = new URL(databaseUrl);
+      defaultUrlObj.pathname = '/postgres';
+      const defaultUrl = defaultUrlObj.toString();
+
+      // 3. Connect to default postgres DB using a temporary client
+      const client = new Client({
+        connectionString: defaultUrl,
+        ssl: defaultUrl.includes('sslmode=disable') || defaultUrl.includes('localhost') || defaultUrl.includes('127.0.0.1')
+          ? false 
+          : (process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false)
+      });
+
+      await client.connect();
+
+      // 4. Check if the target database exists
+      const dbCheckRes = await client.query(
+        'SELECT 1 FROM pg_database WHERE datname = $1',
+        [dbName]
+      );
+
+      if (dbCheckRes.rows.length === 0) {
+        console.log(`Database "${dbName}" does not exist. Creating it now...`);
+        // Note: CREATE DATABASE cannot run inside a transaction, and we must double-quote the identifier
+        await client.query(`CREATE DATABASE "${dbName}"`);
+        console.log(`Database "${dbName}" created successfully!`);
+      }
+
+      await client.end();
+    }
+  } catch (error) {
+    console.error('Warning during check/creation of database:', error.message);
+  }
+
+  // 5. Connect and initialize tables in the target database
   try {
     await query(`
       CREATE TABLE IF NOT EXISTS users (
@@ -37,7 +81,7 @@ export async function initDb() {
     `);
     console.log('Database tables verified/created successfully.');
   } catch (error) {
-    console.error('Database initialization warning (make sure PG is running and DATABASE_URL is correct):', error.message);
+    console.error('Database tables initialization warning:', error.message);
   }
 }
 
