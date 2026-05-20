@@ -12,8 +12,12 @@ export const metadata = {
 };
 
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { auth } from "@/auth";
+import { SessionProvider } from "next-auth/react";
 
-export default function RootLayout({ children }) {
+export default async function RootLayout({ children }) {
+  const session = await auth();
+
   return (
     <html lang="en" className={outfit.variable}>
       <head>
@@ -21,12 +25,14 @@ export default function RootLayout({ children }) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
       <body style={{ height: '100vh', overflow: 'hidden' }}>
-        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
-          <Sidebar />
-          <div style={{ flexGrow: 1, height: '100vh', overflowY: 'auto', position: 'relative' }}>
-            {children}
+        <SessionProvider session={session}>
+          <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
+            <Sidebar />
+            <div style={{ flexGrow: 1, height: '100vh', overflowY: 'auto', position: 'relative' }}>
+              {children}
+            </div>
           </div>
-        </div>
+        </SessionProvider>
       </body>
     </html>
   );
