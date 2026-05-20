@@ -80,6 +80,55 @@
   list-style: none;
 }
 
+/* Tooltip wrapper — enables positioning context for the floating label */
+.navItemWrapper {
+  position: relative;
+  list-style: none;
+}
+
+.navItemWrapper:hover .tooltip {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+.tooltip {
+  position: absolute;
+  left: calc(100% + 18px);
+  top: 50%;
+  transform: translateX(-8px) translateY(-50%);
+  background: var(--bg-sidebar);
+  color: var(--text-main);
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 200;
+}
+
+[data-theme='light'] .tooltip {
+  background: var(--bg-sidebar);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Arrow pointer pointing left from the tooltip box */
+.tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--bg-sidebar);
+}
+
 .navItem {
   display: flex;
   align-items: center;
