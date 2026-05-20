@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSession, signOut } from 'next-auth/react';
 import styles from './Sidebar.module.css';
 
 export default function Sidebar() {
+  const { data: session } = useSession();
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -79,15 +81,41 @@ export default function Sidebar() {
       </nav>
 
       <div className={styles.footer}>
-        <div className={styles.navItemWrapper}>
-          <Link href="/logout" className={styles.logoutBtn}>
-            <div className={styles.icon}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-            </div>
-            <span>Logout</span>
-          </Link>
-          {isCollapsed && <span className={styles.tooltip}>Logout</span>}
-        </div>
+        {session ? (
+          <div className={styles.navItemWrapper}>
+            <button 
+              onClick={() => signOut({ callbackUrl: '/login' })} 
+              className={styles.logoutBtn}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                width: '100%',
+                cursor: 'pointer',
+                textAlign: 'left',
+                display: 'flex',
+                alignItems: 'center',
+                padding: '12px 16px',
+                fontFamily: 'inherit',
+              }}
+            >
+              <div className={styles.icon}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+              </div>
+              <span style={{ marginLeft: isCollapsed ? '0px' : '15px', display: isCollapsed ? 'none' : 'inline' }}>Logout</span>
+            </button>
+            {isCollapsed && <span className={styles.tooltip}>Logout</span>}
+          </div>
+        ) : (
+          <div className={styles.navItemWrapper}>
+            <Link href="/login" className={styles.logoutBtn}>
+              <div className={styles.icon}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" y1="12" x2="3" y2="12" /></svg>
+              </div>
+              <span>Login</span>
+            </Link>
+            {isCollapsed && <span className={styles.tooltip}>Login</span>}
+          </div>
+        )}
         <div className={styles.darkModeToggle}>
           <div className={`${styles.switch} ${isDarkMode ? styles.active : ''}`} onClick={toggleDarkMode}>
             <div className={styles.handle}>

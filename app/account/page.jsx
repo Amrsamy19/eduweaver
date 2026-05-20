@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { getUserProfile, updateProfile } from '@/app/actions/auth';
 import { 
   ArrowLeft, 
   Bell, 
@@ -23,6 +25,7 @@ import {
 import styles from './page.module.css';
 
 export default function AccountPage() {
+  const { data: session, status } = useSession();
   const [role, setRole] = useState('student'); // 'student' or 'teacher'
   const [view, setView] = useState('dashboard'); // 'dashboard', 'editProfile', 'lecturesList', 'addLecture'
 
@@ -56,17 +59,79 @@ export default function AccountPage() {
 
   const [newLecture, setNewLecture] = useState({ title: '', date: '' });
 
+  // Load user profile details on auth change
+  useEffect(() => {
+    async function loadProfile() {
+      if (session?.user?.email) {
+        const user = await getUserProfile(session.user.email);
+        if (user) {
+          setRole(user.role.toLowerCase());
+          if (user.role === 'STUDENT') {
+            setStudentProfile({
+              name: user.name || '',
+              description: user.description || '',
+              phone: user.phone || '',
+              email: user.email || '',
+              interests: user.interests || '',
+              gender: user.gender || 'Female',
+              grade: user.grade || 'First Grade',
+            });
+          } else if (user.role === 'TEACHER') {
+            setTeacherProfile({
+              name: user.name || '',
+              description: user.description || '',
+              phone: user.phone || '',
+              email: user.email || '',
+              lectureDate: user.lectureDate || 'Every Wednesday',
+              price: user.price || '170 L.E / Month',
+              subject: user.subject || 'English',
+            });
+          }
+        }
+      }
+    }
+    if (status === 'authenticated') {
+      loadProfile();
+    }
+  }, [session, status]);
+
   // Handle forms
-  const handleSaveStudent = (e) => {
+  const handleSaveStudent = async (e) => {
     e.preventDefault();
-    setView('dashboard');
-    alert('Student profile saved successfully!');
+    if (!session?.user?.id) return;
+    const res = await updateProfile(session.user.id, {
+      name: studentProfile.name,
+      description: studentProfile.description,
+      phone: studentProfile.phone,
+      grade: studentProfile.grade,
+      interests: studentProfile.interests,
+      gender: studentProfile.gender,
+    });
+    if (res.success) {
+      setView('dashboard');
+      alert('Student profile saved successfully!');
+    } else {
+      alert('Error saving student profile: ' + res.error);
+    }
   };
 
-  const handleSaveTeacher = (e) => {
+  const handleSaveTeacher = async (e) => {
     e.preventDefault();
-    setView('dashboard');
-    alert('Teacher profile saved successfully!');
+    if (!session?.user?.id) return;
+    const res = await updateProfile(session.user.id, {
+      name: teacherProfile.name,
+      description: teacherProfile.description,
+      phone: teacherProfile.phone,
+      lectureDate: teacherProfile.lectureDate,
+      price: teacherProfile.price,
+      subject: teacherProfile.subject,
+    });
+    if (res.success) {
+      setView('dashboard');
+      alert('Teacher profile saved successfully!');
+    } else {
+      alert('Error saving teacher profile: ' + res.error);
+    }
   };
 
   const handleAddLecture = (e) => {
@@ -83,6 +148,16 @@ export default function AccountPage() {
     setNewLecture({ title: '', date: '' });
     alert('Lecture added successfully!');
   };
+
+  if (status === 'loading') {
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-main)', color: 'var(--text-main)' }}>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--accent-orange)' }}>LOADING PROFILE...</h2>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

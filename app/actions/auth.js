@@ -1,9 +1,10 @@
 'use server';
 
 import { signIn, signOut } from '@/auth';
-import { db } from '@/app/lib/db';
+import { query } from '@/app/lib/db';
 import bcrypt from 'bcryptjs';
 import { AuthError } from 'next-auth';
+import crypto from 'crypto';
 
 /**
  * Register a new user (Student or Teacher)
@@ -20,34 +21,30 @@ export async function register(prevState, formData) {
     }
 
     // Check if user already exists
-    const existingUser = await db.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
+    const existingRes = await query('SELECT * FROM users WHERE email = $1', [email]);
+    if (existingRes.rows.length > 0) {
       return { error: 'A user with this email already exists.' };
     }
 
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const userId = crypto.randomUUID();
 
-    // Create the user
-    await db.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role,
-        // Populate default values according to roles
-        description: role === 'TEACHER' 
-          ? 'Senior subject instructor on Eduweaver.' 
-          : 'Highly motivated student aiming for success.',
-        grade: role === 'STUDENT' ? 'First Grade' : null,
-        lectureDate: role === 'TEACHER' ? 'Every Wednesday' : null,
-        price: role === 'TEACHER' ? '170 L.E / Month' : null,
-        subject: role === 'TEACHER' ? 'English' : null,
-      },
-    });
+    const description = role === 'TEACHER' 
+      ? 'Senior subject instructor on Eduweaver.' 
+      : 'Highly motivated student aiming for success.';
+    const grade = role === 'STUDENT' ? 'First Grade' : null;
+    const lectureDate = role === 'TEACHER' ? 'Every Wednesday' : null;
+    const price = role === 'TEACHER' ? '170 L.E / Month' : null;
+    const subject = role === 'TEACHER' ? 'English' : null;
+
+    // Insert user
+    await query(
+      `INSERT INTO users (
+        id, name, email, password, role, description, grade, lecture_date, price, subject
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [userId, name, email, hashedPassword, role, description, grade, lectureDate, price, subject]
+    );
 
     return { success: true, message: 'Registration successful! You can now log in.' };
   } catch (error) {
@@ -71,7 +68,7 @@ export async function login(prevState, formData) {
     await signIn('credentials', {
       email,
       password,
-      redirect: false, // Handle redirect in client manually or use default
+      redirect: false,
     });
 
     return { success: true };
@@ -84,7 +81,6 @@ export async function login(prevState, formData) {
           return { error: 'Authentication failed.' };
       }
     }
-    // Auth.js redirects under the hood by throwing a specific error, which we should rethrow
     if (error.message === 'NEXT_REDIRECT') {
       throw error;
     }
@@ -105,12 +101,36 @@ export async function logout() {
  */
 export async function updateProfile(userId, profileData) {
   try {
-    const updatedUser = await db.user.update({
-      where: { id: userId },
-      data: profileData,
-    });
+    // Dynamically build the update query to prevent overwriting missing columns with null
+    const keys = Object.keys(profileData);
+    if (keys.length === 0) return { success: true };
 
-    return { success: true, user: updatedUser };
+    const setClauses = [];
+    const values = [];
+    let idx = 1;
+
+    for (const key of keys) {
+      // Map JS camelCase keys to Database snake_case columns
+      let colName = key;
+      if (key === 'lectureDate') colName = 'lecture_date';
+
+      setClauses.push(`${colName} = $${idx}`);
+      values.push(profileData[key]);
+      idx++;
+    }
+
+    // Add updated_at
+    setClauses.push(`updated_at = NOW()`);
+    
+    // Add userId to values
+    values.push(userId);
+    const queryText = `UPDATE users SET ${setClauses.join(', ')} WHERE id = $${idx}`;
+
+    await query(queryText, values);
+
+    // Get the updated user profile
+    const userRes = await query('SELECT * FROM users WHERE id = $1', [userId]);
+    return { success: true, user: userRes.rows[0] };
   } catch (error) {
     console.error('Update profile error:', error);
     return { error: 'Failed to update profile.' };
@@ -123,24 +143,24 @@ export async function updateProfile(userId, profileData) {
 export async function getUserProfile(email) {
   try {
     if (!email) return null;
-    const user = await db.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        description: true,
-        grade: true,
-        interests: true,
-        gender: true,
-        lectureDate: true,
-        price: true,
-        subject: true,
-      }
-    });
-    return user;
+    const res = await query(
+      `SELECT 
+        id, 
+        name, 
+        email, 
+        role, 
+        phone, 
+        description, 
+        grade, 
+        interests, 
+        gender, 
+        lecture_date AS "lectureDate", 
+        price, 
+        subject 
+      FROM users WHERE email = $1`,
+      [email]
+    );
+    return res.rows[0] || null;
   } catch (error) {
     console.error('Get user profile error:', error);
     return null;
