@@ -20,10 +20,10 @@ export default function RootLayout({ children }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <body>
-        <div style={{ display: 'flex' }}>
+      <body style={{ height: '100vh', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
           <Sidebar />
-          <div style={{ flexGrow: 1, minHeight: '100vh', position: 'relative' }}>
+          <div style={{ flexGrow: 1, height: '100vh', overflowY: 'auto', position: 'relative' }}>
             {children}
           </div>
         </div>
