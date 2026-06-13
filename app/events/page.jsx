@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Calendar as CalendarIcon, 
   Clock, 
@@ -9,63 +9,48 @@ import {
   ChevronRight,
   BookOpen
 } from 'lucide-react';
+import { getEvents } from '@/app/actions/events';
 import styles from './page.module.css';
 
 export default function EventsPage() {
   const [selectedDay, setSelectedDay] = useState(20); // Defaults to May 20th
+  const [eventsList, setEventsList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const eventsList = [
-    {
-      id: 1,
-      day: 13,
-      hour: '05:00',
-      ampm: 'pm',
-      title: 'English Live Lecture 1',
-      subject: 'ENGLISH',
-      teacher: 'Mr. Ahmed',
-      duration: '1.5 hrs'
-    },
-    {
-      id: 2,
-      day: 20,
-      hour: '05:00',
-      ampm: 'pm',
-      title: 'Relative Clauses - Live Lecture 2',
-      subject: 'ENGLISH',
-      teacher: 'Mr. Ahmed',
-      duration: '1.5 hrs'
-    },
-    {
-      id: 3,
-      day: 20,
-      hour: '07:30',
-      ampm: 'pm',
-      title: 'Thermodynamics Q&A - Office Hours',
-      subject: 'PHYSICS',
-      teacher: 'Dr. Emily',
-      duration: '1 hr'
-    },
-    {
-      id: 4,
-      day: 23,
-      hour: '04:00',
-      ampm: 'pm',
-      title: 'Organic Compounds Mock Test 1',
-      subject: 'CHEMISTRY',
-      teacher: 'Dr. John',
-      duration: '2 hrs'
-    },
-    {
-      id: 5,
-      day: 27,
-      hour: '05:00',
-      ampm: 'pm',
-      title: 'English Live Lecture 3',
-      subject: 'ENGLISH',
-      teacher: 'Mr. Ahmed',
-      duration: '1.5 hrs'
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const events = await getEvents();
+        // Since the DB uses timestamp for event_date, we need to map it to the frontend format.
+        // For simplicity, we extract the day, hour, ampm from the timestamp.
+        const formattedEvents = events.map(e => {
+          const date = new Date(e.event_date);
+          let hours = date.getHours();
+          const ampm = hours >= 12 ? 'pm' : 'am';
+          hours = hours % 12;
+          hours = hours ? hours : 12; // the hour '0' should be '12'
+          const hourStr = hours < 10 ? '0' + hours + ':00' : hours + ':00';
+          
+          return {
+            id: e.id,
+            day: date.getDate(),
+            hour: hourStr,
+            ampm: ampm,
+            title: e.title,
+            subject: e.subject_id, // we might need a join to get subject name, but for now we store subject_id or name in subject_id field
+            teacher: e.teacher,
+            duration: e.duration
+          };
+        });
+        setEventsList(formattedEvents);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     }
-  ];
+    loadEvents();
+  }, []);
 
   const filteredEvents = eventsList.filter(e => e.day === selectedDay);
 

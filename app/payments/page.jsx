@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   CreditCard, 
   DollarSign, 
@@ -11,15 +11,33 @@ import {
   Clock,
   Plus
 } from 'lucide-react';
+import { getUserTransactions } from '@/app/actions/payments';
 import styles from './page.module.css';
 
 export default function PaymentsPage() {
-  const [transactions, setTransactions] = useState([
-    { id: 'INV-4029', date: 'May 10, 2026', subject: 'English Syllabus - May', amount: '170 L.E', status: 'Paid' },
-    { id: 'INV-3981', date: 'Apr 10, 2026', subject: 'English Syllabus - April', amount: '170 L.E', status: 'Paid' },
-    { id: 'INV-3870', date: 'Mar 10, 2026', subject: 'English Syllabus - March', amount: '170 L.E', status: 'Paid' },
-    { id: 'INV-3742', date: 'Feb 10, 2026', subject: 'Registration Fee - First Grade', amount: '250 L.E', status: 'Paid' }
-  ]);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        const data = await getUserTransactions();
+        const formatted = data.map(tx => ({
+          id: tx.id,
+          date: new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          subject: tx.description,
+          amount: tx.amount,
+          status: tx.status
+        }));
+        setTransactions(formatted);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadTransactions();
+  }, []);
 
   const activeSub = {
     course: 'English First Grade Syllabus',

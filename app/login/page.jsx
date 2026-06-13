@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { register, login } from '@/app/actions/auth';
+import { register } from '@/app/actions/auth';
+import { signIn } from 'next-auth/react';
 import styles from './page.module.css';
 
 export default function LoginPage() {
@@ -24,20 +25,24 @@ export default function LoginPage() {
 
     try {
       if (isLogin) {
-        // Log in
-        const res = await login(null, formData);
+        // Log in using next-auth/react
+        const res = await signIn('credentials', {
+          redirect: false,
+          email: formData.get('email'),
+          password: formData.get('password'),
+        });
+        
         if (res?.error) {
-          setError(res.error);
-        } else {
+          setError('Invalid email or password.');
+        } else if (res?.ok) {
           setSuccess('Log in successful! Redirecting...');
-          // Give NextAuth time to cookie setup, then redirect
           setTimeout(() => {
             router.push('/account');
             router.refresh();
-          }, 1000);
+          }, 500);
         }
       } else {
-        // Register
+        // Register using server action
         const res = await register(null, formData);
         if (res?.error) {
           setError(res.error);

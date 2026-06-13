@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, 
   BookOpen, 
@@ -16,6 +16,7 @@ import {
   Clock
 } from 'lucide-react';
 import ReactPlayer from 'react-player';
+import { getSubjectsByGrade, getSubjectByName, enrollSubject, watchSubject } from '@/app/actions/class';
 import styles from './page.module.css';
 
 export default function ClassPage() {
@@ -24,32 +25,58 @@ export default function ClassPage() {
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
-
-  // Hardcoded English teacher preview info from PDF
-  const subjectDetails = {
-    title: 'ENGLISH',
-    teacher: "MR. AHMED'S CLASSES",
-    description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-    lectureDate: 'Every Wednesday',
-    price: '170 L.E / Month',
-    videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' // Premium preview video
-  };
+  const [loading, setLoading] = useState(false);
+  const [subjects, setSubjects] = useState([]);
+  const [subjectDetails, setSubjectDetails] = useState(null);
 
   const handleStartNow = () => {
     setStep(1);
   };
 
-  const handleSelectGrade = (grade) => {
+  const handleSelectGrade = async (grade) => {
     setSelectedGrade(grade);
+    setLoading(true);
     setStep(2);
+    try {
+      const fetchedSubjects = await getSubjectsByGrade(grade);
+      setSubjects(fetchedSubjects);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSelectSubject = (subject) => {
-    if (subject === 'ENGLISH') {
-      setSelectedSubject(subject);
-      setStep(3);
-    } else {
-      alert(`${subject} details will be available soon! Check out the ENGLISH syllabus demo.`);
+  const handleSelectSubject = async (subjectName) => {
+    setSelectedSubject(subjectName);
+    setLoading(true);
+    try {
+      const details = await getSubjectByName(subjectName);
+      if (details) {
+        setSubjectDetails(details);
+        setStep(3);
+      } else {
+        alert(`${subjectName} details are not available in the database yet!`);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEnroll = async () => {
+    if (!subjectDetails) return;
+    try {
+      const res = await enrollSubject(subjectDetails.id);
+      if (res?.error) {
+        alert(res.error);
+      } else {
+        alert('Successfully Enrolled in Class!');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred during enrollment.');
     }
   };
 
@@ -207,29 +234,35 @@ export default function ClassPage() {
             <h1 className={styles.mainTitle}>Grade Subjects</h1>
           </div>
 
-          <div className={styles.subjectsGrid}>
-            {['ARABIC', 'ENGLISH', 'FRENCH', 'PHYSICS', 'MATHEMATICS', 'HISTORY', 'CHEMISTRY', 'GEOGRAPHY'].map((sub) => (
-              <div 
-                key={sub} 
-                className={styles.subjectCard}
-                onClick={() => handleSelectSubject(sub)}
-              >
-                <div className={styles.subjectIcon}>
-                  <Book size={24} />
+          {loading ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>Loading subjects...</p>
+          ) : subjects.length === 0 ? (
+            <p style={{ textAlign: 'center', color: 'var(--text-muted)' }}>No subjects found for this grade yet.</p>
+          ) : (
+            <div className={styles.subjectsGrid}>
+              {subjects.map((sub) => (
+                <div 
+                  key={sub.id} 
+                  className={styles.subjectCard}
+                  onClick={() => handleSelectSubject(sub.name)}
+                >
+                  <div className={styles.subjectIcon}>
+                    <Book size={24} />
+                  </div>
+                  <h3 className={styles.subjectTitle}>{sub.name}</h3>
                 </div>
-                <h3 className={styles.subjectTitle}>{sub}</h3>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* STEP 3: SUBJECT DETAILS (ENGLISH) */}
-      {step === 3 && (
+      {/* STEP 3: SUBJECT DETAILS */}
+      {step === 3 && subjectDetails && (
         <div className="animate-fade-in">
           <div className={styles.sectionHeader}>
             <p className={styles.subTitle}>SUBJECT OVERVIEW</p>
-            <h1 className={styles.mainTitle}>{subjectDetails.title}</h1>
+            <h1 className={styles.mainTitle}>{subjectDetails.name}</h1>
           </div>
 
           <div className={styles.subjectDetailLayout}>
@@ -245,7 +278,7 @@ export default function ClassPage() {
                     </div>
                     <div>
                       <p className={styles.metaLabel}>Lecture date</p>
-                      <p className={styles.metaValue}>{subjectDetails.lectureDate}</p>
+                      <p className={styles.metaValue}>{subjectDetails.lecture_date}</p>
                     </div>
                   </div>
 
@@ -262,10 +295,15 @@ export default function ClassPage() {
               </div>
 
               <div className={styles.actionBtnGroup}>
-                <button className={styles.enrollBtn} onClick={() => alert('Successfully Enrolled in English Class!')}>
+                <button className={styles.enrollBtn} onClick={handleEnroll}>
                   START NOW
                 </button>
-                <button className={styles.previewBtn} onClick={() => setIsPlaying(true)}>
+                <button className={styles.previewBtn} onClick={async () => {
+                  setIsPlaying(true);
+                  if (subjectDetails) {
+                    await watchSubject(subjectDetails.id);
+                  }
+                }}>
                   PREVIEW LECTURE
                 </button>
               </div>

@@ -95,6 +95,67 @@ export async function initDb() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      CREATE TABLE IF NOT EXISTS subjects (
+        id VARCHAR(255) PRIMARY KEY,
+        grade VARCHAR(100),
+        name VARCHAR(255),
+        teacher VARCHAR(255),
+        description TEXT,
+        lecture_date VARCHAR(255),
+        price VARCHAR(100),
+        video_url VARCHAR(500),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS enrollments (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        subject_id VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS events (
+        id VARCHAR(255) PRIMARY KEY,
+        subject_id VARCHAR(255),
+        title VARCHAR(255),
+        teacher VARCHAR(255),
+        event_date TIMESTAMP,
+        duration VARCHAR(50),
+        type VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS transactions (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        amount VARCHAR(100),
+        status VARCHAR(50) DEFAULT 'Paid',
+        description TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      ALTER TABLE subjects ADD COLUMN IF NOT EXISTS teacher_id VARCHAR(255);
+      ALTER TABLE subjects ADD COLUMN IF NOT EXISTS views INT DEFAULT 0;
+      ALTER TABLE subjects ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+
+      CREATE TABLE IF NOT EXISTS notifications (
+        id VARCHAR(255) PRIMARY KEY,
+        user_id VARCHAR(255),
+        title VARCHAR(255),
+        message TEXT,
+        type VARCHAR(100),
+        unread BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+
+      CREATE TABLE IF NOT EXISTS subject_views (
+        id VARCHAR(255) PRIMARY KEY,
+        subject_id VARCHAR(255),
+        user_id VARCHAR(255),
+        viewed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
     console.log('[DB] Tables verified/created successfully.');
   } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Bell, 
   Video, 
@@ -11,49 +11,42 @@ import {
   Trash2,
   AlertCircle
 } from 'lucide-react';
+import { getStudentNotifications, markAllNotificationsRead, deleteNotification as deleteNotificationAction } from '@/app/actions/notifications';
 import styles from './page.module.css';
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Live English Class Starting Soon',
-      message: 'Your live session "Relative Clauses" with Mr. Ahmed is scheduled to start in 15 minutes. Get your notebook ready!',
-      time: '15 mins ago',
-      type: 'live',
-      unread: true
-    },
-    {
-      id: 2,
-      title: 'New Physics Lecture Uploaded',
-      message: 'Dr. Emily has uploaded a new video lecture: "Introduction to Thermodynamics" under First Grade physics.',
-      time: '2 hours ago',
-      type: 'lecture',
-      unread: true
-    },
-    {
-      id: 3,
-      title: 'Chemistry Mock Test Graded',
-      message: 'Congratulations! Your mock exam "Organic Compounds Part 1" has been graded. You scored 96/100 (A+).',
-      time: '1 day ago',
-      type: 'grade',
-      unread: false
-    },
-    {
-      id: 4,
-      title: 'Upcoming Parent-Teacher Meeting',
-      message: 'A monthly follow-up session with your parents and counselors is scheduled for this Wednesday at 6:00 PM.',
-      time: '3 days ago',
-      type: 'event',
-      unread: false
-    }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const markAllRead = () => {
+  useEffect(() => {
+    async function loadNotifications() {
+      try {
+        const data = await getStudentNotifications();
+        const formatted = data.map(n => ({
+          id: n.id,
+          title: n.title,
+          message: n.message,
+          time: new Date(n.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric' }),
+          type: n.type,
+          unread: n.unread
+        }));
+        setNotifications(formatted);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadNotifications();
+  }, []);
+
+  const markAllRead = async () => {
+    await markAllNotificationsRead();
     setNotifications(notifications.map(n => ({ ...n, unread: false })));
   };
 
-  const deleteNotification = (id) => {
+  const deleteNotification = async (id) => {
+    await deleteNotificationAction(id);
     setNotifications(notifications.filter(n => n.id !== id));
   };
 

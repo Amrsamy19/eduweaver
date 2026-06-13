@@ -68,10 +68,9 @@ export async function login(prevState, formData) {
     await signIn('credentials', {
       email,
       password,
-      redirect: false,
+      redirectTo: '/account',
     });
 
-    return { success: true };
   } catch (error) {
     if (error instanceof AuthError) {
       switch (error.type) {
@@ -81,11 +80,8 @@ export async function login(prevState, formData) {
           return { error: 'Authentication failed.' };
       }
     }
-    if (error.message === 'NEXT_REDIRECT') {
-      throw error;
-    }
-    console.error('Login error:', error);
-    return { error: 'Invalid email or password.' };
+    // Re-throw all other errors (including NEXT_REDIRECT)
+    throw error;
   }
 }
 

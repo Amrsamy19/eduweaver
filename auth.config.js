@@ -5,14 +5,27 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnProtected = nextUrl.pathname.startsWith('/account') || 
-                            nextUrl.pathname.startsWith('/class') || 
-                            nextUrl.pathname.startsWith('/notifications') || 
-                            nextUrl.pathname.startsWith('/events') || 
-                            nextUrl.pathname.startsWith('/payments');
-      if (isOnProtected) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+      const role = auth?.user?.role; // 'STUDENT' or 'TEACHER'
+      const path = nextUrl.pathname;
+
+      const isProtectedRoute = path.startsWith('/account') || 
+                            path.startsWith('/class') || 
+                            path.startsWith('/notifications') || 
+                            path.startsWith('/events') || 
+                            path.startsWith('/payments');
+
+      if (isProtectedRoute) {
+        if (!isLoggedIn) return false;
+
+        // Role-based restrictions
+        if (role === 'TEACHER') {
+          // Teachers should not access student-specific pages
+          if (path.startsWith('/class') || path.startsWith('/notifications') || path.startsWith('/payments') || path.startsWith('/events')) {
+            return Response.redirect(new URL('/account', nextUrl));
+          }
+        }
+        
+        return true;
       }
       return true;
     },

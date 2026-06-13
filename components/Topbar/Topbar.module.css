@@ -1,0 +1,171 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 30px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.pageTitle {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.iconBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background-color: var(--accent-orange);
+  color: #000;
+  font-size: 0.6rem;
+  font-weight: bold;
+  padding: 2px 5px;
+  border-radius: 10px;
+}
+
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 20px;
+  transition: var(--transition);
+}
+
+.userBtn:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  background-color: var(--accent-purple);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.userName {
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.popup {
+  position: absolute;
+  top: 60px;
+  right: 30px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  width: 250px;
+  padding: 10px 0;
+  animation: slideDown 0.2s ease forwards;
+  z-index: 1000;
+}
+
+.popupItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.popupItem:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.logoutItem {
+  color: #FF5E5E;
+}
+
+.logoutItem:hover {
+  background-color: rgba(255, 94, 94, 0.1);
+}
+
+.notificationsPopup {
+  width: 320px;
+}
+
+.popupHeader {
+  padding: 10px 20px 15px;
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.notificationItem {
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.notificationItem:hover {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.notificationTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: var(--text-main);
+}
+
+.notificationTime {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

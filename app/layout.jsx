@@ -12,6 +12,7 @@ export const metadata = {
 };
 
 import Sidebar from "@/components/Sidebar/Sidebar";
+import Topbar from "@/components/Topbar/Topbar";
 import { auth } from "@/auth";
 import { SessionProvider } from "next-auth/react";
 
@@ -24,12 +25,15 @@ export default async function RootLayout({ children }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </head>
-      <body style={{ height: '100vh', overflow: 'hidden' }}>
+      <body style={{ height: '100vh', overflow: 'hidden', margin: 0, padding: 0 }}>
         <SessionProvider session={session}>
           <div style={{ display: 'flex', height: '100vh', overflow: 'hidden' }}>
             <Sidebar />
-            <div style={{ flexGrow: 1, height: '100vh', overflowY: 'auto', position: 'relative' }}>
-              {children}
+            <div style={{ flexGrow: 1, height: '100vh', overflowY: 'auto', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+              <Topbar />
+              <div style={{ flexGrow: 1, overflowY: 'auto', position: 'relative' }}>
+                {children}
+              </div>
             </div>
           </div>
         </SessionProvider>
